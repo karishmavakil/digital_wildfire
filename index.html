@@ -1,0 +1,47 @@
+<html>
+
+	<head>
+		<!--  Styling.  -->
+		<link rel="stylesheet" type="text/css" href="basic.css">
+
+
+		<!--  Script.  -->
+		<!--  Twitter.  -->
+		<script src = 'javascript_libraries/twitter/Tweet.js'></script>
+		<script src = 'javascript_libraries/twitter/Twitter_compiled.js'></script>
+
+	</head>
+
+
+	<body>
+
+
+
+		<div id = 'response'>
+
+
+		</div>
+
+		<script>
+
+		// Example search for 'cat' and print the text and date of the received
+		// results.
+		var callback = function(error, tweets, response) {
+
+			for(var i = 0; i < tweets.statuses.length; ++i) {
+
+				var tweet = toTweet(tweets.statuses[i]);
+				var message = "<b>" + tweet.getCreatedAt() + "</b><br>" +
+					tweet.getText() + "<br><br><br>";
+
+			   document.getElementById("response").innerHTML += message;
+			}
+		};
+
+		Twitter.searchTweets("cat", callback);
+
+		</script>
+
+	</body>
+
+</html>

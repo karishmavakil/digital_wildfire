@@ -1,0 +1,6 @@
+Tweet.js contains the definition of a Tweet. From the Twitter API we receive 
+an Tweet object that holds the data, but doesn't have any methods defined.
+
+Twitter.js is the interface between our application and the Twitter API. Because
+it usese node.js, it first needs to be linked in Twitter_compiled.js and then 
+used.
