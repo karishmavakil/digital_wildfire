@@ -44,6 +44,8 @@ function toTweet(tweet) {
 		var minutes = tweet.created_at.substr(14, 2);
 		var seconds = tweet.created_at.substr(17, 2);
 		var milliseconds = 0;  // Cannot be retrieved - also don't care.
+
+		// Create the date object.
 		var created_at_date = new Date(year, month, day, hours, minutes,
 			seconds, milliseconds);
 		// console.log(year + " " + month + " " + day + " " + hours + " " + 

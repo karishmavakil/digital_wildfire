@@ -24,13 +24,13 @@
 
 		<script>
 
-		// Example search for 'cat' and print the text and date of the received
+		// Example search for "cat" and print the text and date of the received
 		// results.
 		var callback = function(error, tweets, response) {
 
-			for(var i = 0; i < tweets.statuses.length; ++i) {
+			for(var i = 0; i < tweets.length; ++i) {
 
-				var tweet = toTweet(tweets.statuses[i]);
+				var tweet = tweets[i];
 				var message = "<b>" + tweet.getCreatedAt() + "</b><br>" +
 					tweet.getText() + "<br><br><br>";
 
@@ -38,7 +38,14 @@
 			}
 		};
 
-		Twitter.searchTweets("cat", callback);
+		var query = {
+			q: "cat",
+			geocode: Twitter.locations.London,
+			lang: Twitter.languages.English,
+			result_type: "recent",
+			count: 10,
+		};
+		Twitter.searchTweets(query, callback);
 
 		</script>
 
