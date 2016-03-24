@@ -7,8 +7,14 @@
 
 		<!--  Script.  -->
 		<!--  Twitter.  -->
+		<script src = 'javascript_libraries/twitter/User.js'></script>
+		<script src = 'javascript_libraries/twitter/Trend.js'></script>
+		<script src = 'javascript_libraries/twitter/LimitedTweet.js'></script>
 		<script src = 'javascript_libraries/twitter/Tweet.js'></script>
 		<script src = 'javascript_libraries/twitter/Twitter_compiled.js'></script>
+
+		<!--  Data.  -->
+		<script src = 'javascript_libraries/twitter/data/imported_data.js'></script>
 
 	</head>
 
@@ -46,6 +52,43 @@
 			count: 10,
 		};
 		Twitter.searchTweets(query, callback);
+
+		/*
+		// Get trending topics right now in London.
+		var callback = function(error, trends, response) {
+
+			document.getElementById("response").innerHTML += trends.length + 
+				"<br><br>";
+
+			for(var i = 0; i < trends.length; ++i) {
+
+				var trend = trends[i];
+				var message = "<b>" + trend.getName() + "</b> " +
+					trend.getTweetVolume() + " " + trend.isPromotedContent() + 
+					"<br><br><br>";
+
+			   document.getElementById("response").innerHTML += message;
+			}
+		}
+		Twitter.getTrends("London", callback);
+		*/
+
+		/*
+		// Load first 10 Tweets from the imported data from the first time frame.
+		var tweets = Twitter.getImportedData(0);
+		var br = "<br>";
+		var message = "Total improted:" + tweets.length + br + br;
+		for(var i = 0; i < 10; ++i) {
+			var tweet = tweets[i];
+			var coord = tweet.getLocation();
+			message += "Posted by:" + tweet.user.getScreenName() + " which is a " + 
+				tweet.user.getGender() + br + "Created at:" + tweet.getCreatedAt() +
+				" " + coord[0] + " " + coord[1] + "  written in " +
+				tweet.getLanguage() + br + tweet.getText() + br + br + br;
+		}
+
+	  	document.getElementById("response").innerHTML += message;
+	  	*/
 
 		</script>
 
