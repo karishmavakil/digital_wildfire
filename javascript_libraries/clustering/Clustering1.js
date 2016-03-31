@@ -119,12 +119,19 @@ function hardClustering(chosen, clusterNum){
     
     // :: array of numbner => cluster object
     function toCluster(xs){
-        var clTweets = [];
+        var clTweets = [], total = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
         for(j in xs){
             clTweets.push(chosen.tweets[j]);
+            for(i=0, i<20, i++){
+                total[i] += tweets[j].vector[i];
+            };
         };
+        for(i=0, i<20, i++){
+            total[i] = total[i]/(clTweets.length);
+        }
         this.tweets = clTweets
         this.words = chosen.words
+        this.centroid = total
     };
     var finalClusters = [];
     for(tCluster in clusters){
