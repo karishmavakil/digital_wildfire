@@ -2,24 +2,35 @@ var TwitterAPI = require('twitter');
 
 Twitter = new function() {
 	// A client connected to the Twitter API.
-	var client = new TwitterAPI({
-	  consumer_key: 'RmJ3oLFcxmbUnXnWr0hK4HduL',
-	  consumer_secret: 'dxq6EZSYYIi16bRxQe3xykUwdIjr7xTunl1sZHmGAycQmizwPT',
-	  access_token_key: '4919214645-KfdrJKSdzNk2CKJRnW5hjuzVXPf8wCiPWTtZqSL',
-	  access_token_secret: 'GthrWFZROFDsf4WfSObrVRUQW01urjZxircf4PfgL6ZzU'
-	});
+	var client = null;
 
-	// Only support english for now.
+	// Create a client if there is none.
+	var connect = function() {
+		if(client == null)
+			client = new TwitterAPI({
+			  consumer_key: 'RmJ3oLFcxmbUnXnWr0hK4HduL',
+			  consumer_secret: 'dxq6EZSYYIi16bRxQe3xykUwdIjr7xTunl1sZHmGAycQmizwPT',
+			  access_token_key: '4919214645-KfdrJKSdzNk2CKJRnW5hjuzVXPf8wCiPWTtZqSL',
+			  access_token_secret: 'GthrWFZROFDsf4WfSObrVRUQW01urjZxircf4PfgL6ZzU'
+			});
+	}
+
+	// Only support English for now.
 	this.languages = {
 		English: "en"
 	};
 
 	// Only support London for now.
 	this.locations = {
-		London: "51.507513,-0.127930,20km"
+		London: "51.507513,-0.127930,15mi"
 	};
+	// Yahoo! Where On Earth ID for locations.
+	var woeid = {
+		London: "44418"
+	}
 
-	// Search Tweets.
+	// Search Twitter for tweets matching the search query - can return a
+	// maximum of 100 tweets.
 	//
 	// Operands for the search query: (at the bottom of the file).
 	//
@@ -60,7 +71,8 @@ Twitter = new function() {
 			}
 			delete query.feeling;
 		}
-		
+
+		connect();
 		// Make the API call.
 		client.get('search/tweets',
 			query, 
@@ -74,12 +86,87 @@ Twitter = new function() {
 			}
 		);
 	};
+
+
+	// Returns the top 50 trending topics for a specific WOEID, if trending
+	// information is available for it (maximum 50).
+	//
+	// getTrends(location: Twitter.woeid, callback: function(error: Unknown, 
+	//		tweets: Array[Trend], response: Unknown))
+	this.getTrends = function(location, callback) {
+		connect();
+		// Make the API call.
+		client.get('trends/place', {id: woeid[location]}, 
+			function(error, data, response) {
+				var trends = new Array();
+				// Convert the data to Trend objects.
+				for(var i = 0; i < data[0].trends.length; ++i)
+					trends[i] = toTrend(data[0].trends[i]);
+
+				// Filter invalid trends.
+				// TODO: eliminate promoted results?
+				// TODO: eliminate results with tweet_volume = 0?
+				var filtered_trends = new Array();
+				var k = 0;
+				for(var i = 0; i < trends.length; ++i)
+					if(trends[i].hasName())
+						filtered_trends[k++] = trends[i];
+
+				// Sort in decreasing order by tweet volume.
+				var compare = function(a, b) {
+					if(a.getTweetVolume() < b.getTweetVolume())
+						return 1;
+					return -1;
+				}
+				var sorted_trends = filtered_trends.sort(compare);
+
+
+				callback(error, sorted_trends, response);
+			}
+		);
+	}
+
+
+	// TODO:
+	// Search Twitter for tweets matching the search query returning more than
+	// 100 tweets.
+
+
+	// Returns data given by our supervisers; the which parameter specifies
+	// which data file to import:
+	// 0 - "12.50-1.10.csv"
+	// 1 - "13.20-13.40"
+	// 2 - "14.10-14.30"
+	// 3 - "14.40-15.00"
+	// Node. This returns tweets that do not belong to the Tweet class, but to
+	// the LimitedTweet class as they hold less data than a normal tweet.
+	//
+	// getImportedData(which: Int): Array[LimitedTweet]
+	this.getImportedData = function(which) {
+		var tweets = new Array();
+
+		for(var i = 0; i < imported_data_from_super[which].length; ++i)
+			tweets[i] = toLimitedTweet(imported_data_from_super[which][i]);
+
+		return tweets;
+	}
+
+
+	// TODO?
+	// Returns a collection of the most recent Tweets posted by the user 
+	// indicated by the screen_name or user_id parameters.
+	// GET statuses/user_timeline
 };
 
 
 
 
 
+
+
+
+
+// Further documentation:
 //
 // Operands for the search query:
 //  watching now = containing both "watching" and "now".
