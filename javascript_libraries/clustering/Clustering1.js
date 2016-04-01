@@ -6,7 +6,8 @@ function vectorise(tweet, words){
     for (i = 0; i i <= words.length; i++){
         v[i] = 0;
         if(tweet.getText.toLowerCase.prototype.includes(word[i])){
-            v[i] = tweet.sentiment(words[i])
+            // v[i] = tweet.sentiment(words[i])
+            v[i] = 1;
         };
     };
     return v;
@@ -22,7 +23,7 @@ function similarity(tweet1, tweet2){
     return total;
 };
 
-// tweetChooser takes all the tweets and sentiment data, and picks out the 20 best words to find tweets from using the most common word occurences, and then chooses N tweets from the data to try and represent the whole sample as best as possible including the sentiment of the tweets on the terms. so it returns: object with 2 parameters, words: array size 20 of string with all the words chosen to cover (all lowercase), and tweets: Array size N of tweets chosen
+// tweetChooser takes all the tweets and sentiment data, and picks out the 15 best words to find tweets from using the most common word occurences, and then chooses N tweets from the data to try and represent the whole sample as best as possible including the sentiment of the tweets on the terms. so it returns: object with 2 parameters, words: array size 20 of string with all the words chosen to cover (all lowercase), and tweets: Array size N of tweets chosen
 function tweetChooser(tweets, sentiments, tweetNum){
     val chosenWords = sentiments.mostPopularWords; //however that actally works
     var compareNumbers1 = function(tweet1, tweet2){ return (similarity(tweet2, tweet2) - similarity(tweet1, tweet1)) };
