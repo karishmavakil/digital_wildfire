@@ -1,0 +1,20 @@
+Twitter.js is the interface between our application and the Twitter API. Because
+it usese node.js, it first needs to be linked in Twitter_compiled.js and then 
+used.
+To search for tweets use: Twitter.searchTweets (this only works for a maximum of
+100 returned tweets; will implement in the future a methods which will return more)
+To get the trending topics use: Twitter.getTrends
+To import data from our supervisers (from the folder "Twitter 23 Feb 2016") use:
+Twitter.getImportedData - make sure you include the twitter/data/imported_data.js.
+The problem is that these tweets have significantly fewer signals than tweets 
+imported from Twitter.
+
+
+Tweet.js contains the definition of a Tweet. Read that to see what is available
+for a tweet.
+
+User.js contains the definition of a User. Each tweet contains an object of type
+User representing the user that posted that tweet.
+
+Trend.js contains the definition of a Trend object. An object of this type is 
+returned when accessing the trending page from Twitter.
