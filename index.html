@@ -1,9 +1,14 @@
 <html>
 
 	<head>
+		<!--  External.  -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+		<!--  Local.  -->
 		<!--  Styling.  -->
 		<link rel="stylesheet" type="text/css" href="basic.css">
-
 
 		<!--  Script.  -->
 		<!--  Twitter.  -->
@@ -13,6 +18,10 @@
 		<script src = 'javascript_libraries/twitter/Tweet.js'></script>
 		<script src = 'javascript_libraries/twitter/Twitter_compiled.js'></script>
 
+		<!--  Clustering.  -->
+		<script src = 'javascript_libraries/clustering/Clustering1.js'></script>
+		<script src = 'javascript_libraries/clustering/priority-queue.js'></script>
+
 		<!--  Data.  -->
 		<script src = 'javascript_libraries/twitter/data/imported_data.js'></script>
 
@@ -21,17 +30,155 @@
 
 	<body>
 
+	<div class = 'container'>
 
+		<div class = "row">
+			<div class = "col-sm-9">
 
-		<div id = 'response'>
+				<h5> Note: Selecting a location will significantly reduce the number of results.</h5>
 
+				<div class = 'input-group'>
+					<input id = 'search_bar' type = 'text' placeholder = 'search' 
+						class = 'form-control'>
+					</input>
+				<button id = 'search_button' type = 'button' class="btn btn-default input-group-addon">
+					<span class="glyphicon glyphicon-search"></span> Search
+				</button>
+				</div>
 
+				<label for = "location_select">Location</label>
+				<select id = 'location_select' class = 'form-control'>
+					<option value = '0'>London</option>
+					<option value = '1' selected = 'selected'>Any</option>
+				</select>
+
+				<label for = "language_select">Language</label>
+				<select id = 'language_select' class = "form-control">
+					<option value = '0'>English</option>
+					<option value = '1'>Any</option>
+				</select>
+
+				<div class="panel">
+					<div class="panel-body">
+
+						<ul id = 'navbar' class="nav nav-pills">
+							<li><a href="#section_tweets">Tweets</a></li>
+							<li><a href="#section_clusters">Clusters</a></li>
+						</ul>
+
+						<div id="section_tweets" class="container-fluid">
+							<h1>Tweets</h1>
+							<div id = 'tweets_data'></div>
+						</div>
+						<div id="section_clusters" class="container-fluid">
+							<h1>Clusters</h1>
+							<div id = 'clusters_data'></div>
+						</div>
+
+					</div>
+				</div>
+
+			</div>
+			<div id = 'side_panel' class = "col-sm-3">
+				<h4>Trending in London</h4>
+				<div id = 'trending'>
+					Loading ...
+				</div>
+			</div>
 		</div>
+
+		<script>
+
+		$("#search_button").on("click", function(event) {
+			searchString(grabSearchQuery());
+		});
+
+		$("#search_bar").on("keyup", function(event) {
+			if(event.which == 13)
+				searchString(grabSearchQuery());
+		});
+
+		function grabSearchQuery() {
+			var query = {
+				q: $('#search_bar').val(),
+				result_type: "recent",
+				count: 100,
+			};
+
+			if($('#location_select').val() === "0")
+				query.geocode = Twitter.locations.London;
+
+			if($('#language_select').val() === "0")
+				query.lang = Twitter.languages.English;
+
+			return query;
+		};
+
+		function searchString(query) {
+
+			$("#tweets_data").html("Loading ...");
+
+			var callback = function(error, tweets, response) {
+				var message = "";
+
+				if(tweets.length !== 0) {
+					for(var i = 0; i < tweets.length; ++i) {
+						var tweet = tweets[i];
+						message += "<b>" + tweet.getCreatedAt() + "</b><br>" +
+							tweet.getText() + "<br><br><br>";
+					}
+				} else {
+					message = "No results.";
+				}
+
+				$("#tweets_data").html(message);
+
+				if(tweets.length !== 0)
+					doClustering();
+			};
+
+			Twitter.searchTweets(query, callback);
+		};
+
+		function doClustering() {
+			$("#clusters_data").html("Clustering ... <br> Module not here yet.");
+
+		};
+
+		// Side panel with trending page.
+		function fetchTrending() {
+			// Get trending topics right now in London.
+			var callback = function(error, trends, response) {
+				var message = trends.length + " trends<br>";
+				// Start table.
+				message += "<table class = 'table table-hover'>";
+				message += "<thead><tr><th>Query</th><th>Tweet Volume</th></tr></thead>";
+				message += "<tbody>";
+				for(var i = 0; i < trends.length; ++i) {
+					var trend = trends[i];
+					message += "<tr><td>" + trend.getName() + "</td><td>" +
+						trend.getTweetVolume() + "</td></tr>";
+				}
+				message += "</tbody></table>";
+				$('#trending').html(message);
+			}
+			Twitter.getTrends("London", callback);
+		};
+		fetchTrending();
+
+
+		</script>
+
+
+
+
+
 
 		<script>
 
 		// Example search for "cat" and print the text and date of the received
 		// results.
+		/*
 		var callback = function(error, tweets, response) {
 
 			for(var i = 0; i < tweets.length; ++i) {
@@ -52,7 +199,7 @@
 			count: 10,
 		};
 		Twitter.searchTweets(query, callback);
-
+		*/
 		/*
 		// Get trending topics right now in London.
 		var callback = function(error, trends, response) {
@@ -73,7 +220,7 @@
 		Twitter.getTrends("London", callback);
 		*/
 
-		/*
+/*		
 		// Load first 10 Tweets from the imported data from the first time frame.
 		var tweets = Twitter.getImportedData(0);
 		var br = "<br>";
@@ -90,7 +237,36 @@
 	  	document.getElementById("response").innerHTML += message;
 	  	*/
 
+	  	/*
+	  	var many = 100;
+	  	var tweetsMany = new Array();
+	  	// Load first 'many' tweets from the imported data, written in English.
+		var tweets = Twitter.getImportedData(0);
+		var br = "<br>";
+
+		var message = "Total improted:" + tweets.length + br + br;
+		var k = 0;
+		for(var i = 0; k < many && i < tweets.length; i++) {
+			var tweet = tweets[i];
+
+			// Check if it's in English.
+			if(tweet.hasLanguage() && tweet.getLanguage() === "EN") {
+				tweetsMany[k] = tweet;
+				var coord = tweet.getLocation();
+				message += "Posted by:" + tweet.user.getScreenName() + " which is a " + 
+					tweet.user.getGender() + br + "Created at:" + tweet.getCreatedAt() +
+					" " + coord[0] + " " + coord[1] + "  written in " +
+					tweet.getLanguage() + br + tweet.getText() + br + br + br;
+				k++;
+				}
+		}
+
+	  	document.getElementById("response").innerHTML += message;
+		*/
+
 		</script>
+
+	</div>
 
 	</body>
 
