@@ -1,0 +1,25 @@
+{
+  "name": "digital_wildfire",
+  "version": "1.0.0",
+  "description": "The Digital Wildfire project as a node.js module,",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexandruOkros/digital_wildfire.git"
+  },
+  "author": "Alexandru Okros",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexandruOkros/digital_wildfire/issues"
+  },
+  "homepage": "https://github.com/alexandruOkros/digital_wildfire#readme",
+  "dependencies": {
+    "express": "4.10.2",
+    "socket.io": "1.2.0",
+    "twitter": "1.2.5",
+    "alchemy-api": "1.3.1"
+  }
+}

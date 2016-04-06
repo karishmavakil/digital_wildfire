@@ -1,1 +1,10 @@
+To run locally:
+	- install node.js
+	  In the command line:
+	- git clone https://github.com/alexandruOkros/digital_wildfire/
+	- npm install
+	- node index.js
+	- Go to http://localhost:3000
+
+
 The twitter module is under javascript_libraries/twitter.

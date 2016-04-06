@@ -5,25 +5,26 @@
 		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    	<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 
 		<!--  Local.  -->
 		<!--  Styling.  -->
-		<link rel="stylesheet" type="text/css" href="basic.css">
+		<link rel="stylesheet" type="text/css" href="style/basic.css">
 
 		<!--  Script.  -->
 		<!--  Twitter.  -->
-		<script src = 'javascript_libraries/twitter/User.js'></script>
-		<script src = 'javascript_libraries/twitter/Trend.js'></script>
-		<script src = 'javascript_libraries/twitter/LimitedTweet.js'></script>
-		<script src = 'javascript_libraries/twitter/Tweet.js'></script>
-		<script src = 'javascript_libraries/twitter/Twitter_compiled.js'></script>
+		<script src = 'modules/twitter/User.js'></script>
+		<script src = 'modules/twitter/Trend.js'></script>
+		<script src = 'modules/twitter/LimitedTweet.js'></script>
+		<script src = 'modules/twitter/Tweet.js'></script>
+		<script src = 'modules/twitter/Twitter.js'></script>
 
 		<!--  Clustering.  -->
-		<script src = 'javascript_libraries/clustering/Clustering1.js'></script>
-		<script src = 'javascript_libraries/clustering/priority-queue.js'></script>
+		<script src = 'modules/clustering/Clustering1.js'></script>
+		<script src = 'modules/clustering/priority-queue.js'></script>
 
 		<!--  Data.  -->
-		<script src = 'javascript_libraries/twitter/data/imported_data.js'></script>
+		<script src = 'modules/twitter/data/imported_data.js'></script>
 
 	</head>
 
@@ -145,6 +146,17 @@
 
 		};
 
+
+		var socket = io();
+		var connection_id = 0;
+		/*
+        socket.emit('chat message', "Hello world!");
+
+		socket.on('chat message', function(msg){
+			console.log(msg);
+		});
+		*/
+
 		// Side panel with trending page.
 		function fetchTrending() {
 			// Get trending topics right now in London.
@@ -162,6 +174,7 @@
 				message += "</tbody></table>";
 				$('#trending').html(message);
 			}
+
 			Twitter.getTrends("London", callback);
 		};
 		fetchTrending();

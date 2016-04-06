@@ -1,20 +1,7 @@
-var TwitterAPI = require('twitter');
-
+//
+// The Twitter interface.
+//
 Twitter = new function() {
-	// A client connected to the Twitter API.
-	var client = null;
-
-	// Create a client if there is none.
-	var connect = function() {
-		if(client == null)
-			client = new TwitterAPI({
-			  consumer_key: 'RmJ3oLFcxmbUnXnWr0hK4HduL',
-			  consumer_secret: 'dxq6EZSYYIi16bRxQe3xykUwdIjr7xTunl1sZHmGAycQmizwPT',
-			  access_token_key: '4919214645-KfdrJKSdzNk2CKJRnW5hjuzVXPf8wCiPWTtZqSL',
-			  access_token_secret: 'GthrWFZROFDsf4WfSObrVRUQW01urjZxircf4PfgL6ZzU'
-			});
-	}
-
 	// Only support English for now.
 	this.languages = {
 		English: "en"
@@ -72,19 +59,20 @@ Twitter = new function() {
 			delete query.feeling;
 		}
 
-		connect();
-		// Make the API call.
-		client.get('search/tweets',
-			query, 
-			function(error, data, response) {
-				var tweets = new Array();
-				// Convert the data to Tweet objects.
-				for(var i = 0; i < data.statuses.length; ++i)
-					tweets[i] = toTweet(data.statuses[i]);
+		// Make a request.
+		connection_id = connection_id + 1;
+		var local = connection_id;
+		socket.emit('search_req', { data: query, connection_id: local });
 
-				callback(error, tweets, response);
-			}
-		);
+		// Wait for the response.
+		socket.on('search_res' + local, function(data) {
+			var tweets = new Array();
+			// Convert the data to Tweet objects.
+			for(var i = 0; i < data.data.statuses.length; ++i)
+				tweets[i] = toTweet(data.data.statuses[i]);
+
+			callback(data.error, tweets, data.response);
+		});
 	};
 
 
@@ -94,36 +82,39 @@ Twitter = new function() {
 	// getTrends(location: Twitter.woeid, callback: function(error: Unknown, 
 	//		tweets: Array[Trend], response: Unknown))
 	this.getTrends = function(location, callback) {
-		connect();
-		// Make the API call.
-		client.get('trends/place', {id: woeid[location]}, 
-			function(error, data, response) {
-				var trends = new Array();
-				// Convert the data to Trend objects.
-				for(var i = 0; i < data[0].trends.length; ++i)
-					trends[i] = toTrend(data[0].trends[i]);
+		// TODO check for supported location.
+		// Make a request.
+		connection_id = connection_id + 1;
+		var local = connection_id;
+		socket.emit('trend_req', { data: woeid[location], connection_id: local });
 
-				// Filter invalid trends.
-				// TODO: eliminate promoted results?
-				// TODO: eliminate results with tweet_volume = 0?
-				var filtered_trends = new Array();
-				var k = 0;
-				for(var i = 0; i < trends.length; ++i)
-					if(trends[i].hasName())
-						filtered_trends[k++] = trends[i];
+		// Wait for the response.
+		socket.on('trend_res' + local, function(data) {
+			var trends = new Array();
+			// Convert the data to Trend objects.
+			for(var i = 0; i < data.data[0].trends.length; ++i)
+				trends[i] = toTrend(data.data[0].trends[i]);
 
-				// Sort in decreasing order by tweet volume.
-				var compare = function(a, b) {
-					if(a.getTweetVolume() < b.getTweetVolume())
-						return 1;
-					return -1;
-				}
-				var sorted_trends = filtered_trends.sort(compare);
+			// Filter invalid trends.
+			// TODO: eliminate promoted results?
+			// TODO: eliminate results with tweet_volume = 0?
+			var filtered_trends = new Array();
+			var k = 0;
+			for(var i = 0; i < trends.length; ++i)
+				if(trends[i].hasName())
+					filtered_trends[k++] = trends[i];
 
-
-				callback(error, sorted_trends, response);
+			// Sort in decreasing order by tweet volume.
+			var compare = function(a, b) {
+				if(a.getTweetVolume() < b.getTweetVolume())
+					return 1;
+				return -1;
 			}
-		);
+			var sorted_trends = filtered_trends.sort(compare);
+
+			callback(data.error, sorted_trends, data.response);
+		});
+
 	}
 
 
@@ -157,11 +148,6 @@ Twitter = new function() {
 	// indicated by the screen_name or user_id parameters.
 	// GET statuses/user_timeline
 };
-
-
-
-
-
 
 
 
