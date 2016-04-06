@@ -38,13 +38,15 @@
 
 				<h5> Note: Selecting a location will significantly reduce the number of results.</h5>
 
-				<div class = 'input-group'>
+				<div class="input-group">
 					<input id = 'search_bar' type = 'text' placeholder = 'search' 
-						class = 'form-control'>
+						class = 'form-control' aria-describedby = "search_button">
 					</input>
-				<button id = 'search_button' type = 'button' class="btn btn-default input-group-addon">
-					<span class="glyphicon glyphicon-search"></span> Search
-				</button>
+					<span class="input-group-btn">
+						<button id = 'search_button' class="btn btn-default" type="button">
+							<span class="glyphicon glyphicon-search"></span> Search
+						</button>
+					</span>
 				</div>
 
 				<label for = "location_select">Location</label>
