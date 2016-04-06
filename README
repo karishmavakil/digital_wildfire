@@ -4,7 +4,7 @@ To run locally:
 	- git clone https://github.com/alexandruOkros/digital_wildfire/
 	- npm install
 	- node index.js
-	- Go to http://localhost:3000
+	- Go to http://localhost:3000 (If this port is busy, modify it in index.js and try again).
 
 
 The twitter module is under javascript_libraries/twitter.
