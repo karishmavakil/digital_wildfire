@@ -40,7 +40,7 @@ function tweetChooser(tweets, sentiments, tweetNum) {
         this.words = array2;
     }
     
-    return chosen(chosenTweets, chosenWords);
+    return new chosen(chosenTweets, chosenWords);
 }
 //TODODOD
 
@@ -63,7 +63,7 @@ function hardClustering(chosen, clusterNum) {
     // inserts each possible difference between 2 points into the priority queeue as an object with coordinates and and value of the difference
     for (i = 0; i < chosen.tweets.length; i++) {
         for (j = 0; j < chosen.tweets.length; j++) {
-            maxOrder.queue(diffValue(similarity(chosen.tweets[i], chosen.tweets[j]), i, j));
+            maxOrder.queue(new diffValue(similarity(chosen.tweets[i], chosen.tweets[j]), i, j));
         }
         
     }
