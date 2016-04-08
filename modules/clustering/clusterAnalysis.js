@@ -1,63 +1,57 @@
+var PriorityQueue = require('./PriorityQueue.js');
 
-
-// using assumption that the sentiment data contains an array of entities and a sentiment score)
-
-
-//cluster is an array of tweets, clusters is an array of clusters
-
-// finds 3 most occurring strings in an array of strings
-function modeCalc(a) {
-    var counter = {};
-    var mode1 = "";
-    var mode2 = "";
-    var mode3 = "";
-    var max1 = 0;
-    var max2 = 0;
-    var max3 = 0;
-    for (var i in a) {
-        if (!(a[i] in counter))
-            counter[a[i]] = 0;
-        counter[a[i]]++;
+//returns an array with 'number' most occurring strings from array 'a'
+//if there are less than 'number' strings, the remaining entries in the returned array are all the empty string
+function modeCalc(a, number) {
  
-        if (counter[a[i]] >= max1) 
-        {
-            if (a[i] != mode1) {
-            	mode3 = mode2;
-        		max3 = max2;
-        		mode2 = mode1;
-        		max2 = max1;
-        		mode1 = a[i];
-        		max1 = counter[a[i]];
-        	}
-        	else {
-        		max1 = counter[a[i]]
-        	}
-        }
-        else if (counter[a[i]] >= max2)
-        {	
-        	if (a[i] != mode2){
-        		mode3 = mode2;
-        		mox3 = max2;
-        		mode2 = a[i];
-        		max2 = counter[a[i]];
-        	}
-        	else {
-        		max2 = counter[a[i]]
-        	}
-        }
-        else if (counter[a[i]] > max3) {
-            mode3 = a[i];
-            max3 = counter[a[i]];
-            
-        }
+	function clusterCount(entity, count) {
+		this.ent = entity;
+		this.val = count;
+	}
+	compareCount = function( entity1, entity2)  {
+    var ans = 0;
+    if (entity1 != undefined && entity2 != undefined)
+		  ans = (entity2.val - entity1.val);
+    return ans;
+	}
+	var maxOrder = new PriorityQueue({comparator : compareCount});
+
+    
+  var counter = {};    
+  for (var i in a) {
+    if (!(a[i] in counter)) {
+        counter[a[i]] = 0;
+        console.log(a[i] + " put in counter");
     }
-    var ans = [mode1,mode2,mode3]
-    return ans; 
+    counter[a[i]]++;
+ 	}
+ 	var done = {};
+ 	for (var i in a) {
+ 		if (!(a[i] in done)) {
+      var k = new clusterCount(a[i],counter[a[i]]);
+      console.log(" " + k.val);
+ 			maxOrder.queue(k);
+ 			done[a[i]] = 1;
+      console.log(a[i] + " done")
+ 		}
+ 	}
+ 	var ans = [];
+ 	for (i =0 ; i < number; i++ ) {
+    ans[i] = "";
+    try {
+ 	    var answer = maxOrder.dequeue();
+      ans[i]= answer.ent;
+    }
+    catch(err) {}
+ 	}
+  return ans;  
+
 }
 //TODO: check it works^^
 
 
-
+//cluster is an array of tweets
+//clusters is an array of clusters
 // to find 3 most common entitities
 // entitiesCluster(array of tweets, sentiment data) : [String]
 function entitiesCluster(cluster,sentiments) {
@@ -66,7 +60,7 @@ function entitiesCluster(cluster,sentiments) {
 		var ent = cluster[i].entities;
 		concatEntities = concatEntities.concat(ent);
 	}
-	var popular = modeCalc(concatEntities);
+	var popular = modeCalc(concatEntities,3);
 	return popular;
 }
 
@@ -129,7 +123,7 @@ function toClusterObject(cluster,sentiments) {
 	}
 
 	cluster.getSentiment = function() {
-		return sentimentsCluster(cluster,sentiments);
+		return sentimentCluster(cluster,sentiments);
 	}
 
 	cluster.getPopularity = function() {
@@ -148,9 +142,12 @@ function toClusterObject(cluster,sentiments) {
 function mainfn(clusters,sentiments) {
 	var clusterObjects = [];
 	for (i = 0 ; i < clusters.length; i++) {
-		clusterObjects.push(toClusterObject(clusters[i],sentiments));
+    var co = new toClusterObject(clusters[i],sentiments);
+		clusterObjects.push(co);
 
 	}
 	return clusterObjects;
 }
+
+
 
