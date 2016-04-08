@@ -157,9 +157,7 @@ function easyClustering(tweetClusters, tweets) {
         tweetClusters[j].tweets.push(tweets[i]);
     }
     // could possible calculate overall centroids here and then possibly merge very similar clusters, but if not:
-    for (i = 0; i < tweetClusters.length; i++) {
-        clusters[i] = tweetClusters[i].tweets;
-    }
+    return tweetClusters;
 }
 
 function mainClustering(tweets, sentiments) { // returns a good proportion of tweets to take for hard clustreing: approx 200 of 100, or 600 of 10000.
