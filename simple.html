@@ -1,0 +1,71 @@
+<html>
+
+	<head>
+			<!--  External.  -->
+		<link rel="stylesheet" href="bootstrap/bootstrap.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+		<script src="bootstrap/bootstrap.js"></script>
+    	<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+
+		<!--  Local.  -->
+		<!--  Styling.  -->
+		<link rel="stylesheet" type="text/css" href="style/basic.css">
+
+		<!--  Script.  -->
+		<!--  Socket.io.  -->
+		<script src = 'modules/socketio/Socket.js'></script>
+
+		<!--  Twitter.  -->
+		<script src = 'modules/twitter/User.js'></script>
+		<script src = 'modules/twitter/Trend.js'></script>
+		<script src = 'modules/twitter/LimitedTweet.js'></script>
+		<script src = 'modules/twitter/Tweet.js'></script>
+		<script src = 'modules/twitter/Twitter.js'></script>
+
+		<!--  Alchemy.  -->
+		<script src = 'modules/alchemy/Alchemy.js'></script>
+		<script src = 'modules/alchemy/Sentiment.js'></script>
+		<script src = 'modules/alchemy/Keyword.js'></script>
+		<script src = 'modules/alchemy/Entity.js'></script>
+		<script src = 'modules/alchemy/Emotion.js'></script>
+
+		<!--  Clustering.  -->
+		<script src = 'modules/clustering/Clustering1.js'></script>
+		<script src = 'modules/clustering/priority-queue.js'></script>
+
+		<!--  Smaller stuff.  -->
+		<script src = 'modules/other/Local.js'></script>
+
+		<!--  Data.  -->
+		<script src = 'modules/twitter/data/imported_data.js'></script>
+
+	</head>
+
+
+	<body>
+
+		<script>
+
+			var callback = function(error, tweets, response) {
+
+				// Do whatever you want with the tweets.
+				// tweets: Array[Tweet]
+
+				console.log(tweets);
+			};
+
+			var query = {
+				q: "cat",
+				geocode: Twitter.locations.London,
+				lang: Twitter.languages.English,
+				result_type: "recent",
+				count: 10,
+			};
+			Twitter.searchTweets(query, callback);
+
+
+		</script>
+
+	</body>
+
+</html>

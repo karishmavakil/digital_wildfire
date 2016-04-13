@@ -21,6 +21,8 @@ app.get('/', function(req, res){
 app.use("/style", express.static(__dirname + '/style'));
 app.use("/bootstrap", express.static(__dirname + '/bootstrap'));
 app.use("/modules", express.static(__dirname + '/modules'));
+// TODO. remove
+app.use("/simple.html", express.static(__dirname + '/simple.html'));
 
 
 //

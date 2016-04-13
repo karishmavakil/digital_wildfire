@@ -1,1 +1,6 @@
-Clustering.js cotains the main clustering operations. priorityQueue contains an implementation of priority queues in javascript for use in a part of the clustering. Calling mainClustering(tweets: Array of tweets, sentiments: JSON Object of sentiment of all the text) will return an array of Cluster objects, with each object having a parameter tweets which has the array of tweets in it's cluster.
+Clustering.js cotains the main clustering operations. priorityQueue contains an 
+implementation of priority queues in javascript for use in a part of the 
+clustering. Calling mainClustering(tweets: Array of tweets, sentiments: 
+JSON Object of sentiment of all the text) will return an array of Cluster 
+objects, with each object having a parameter tweets which has the array of 
+tweets in it's cluster.
