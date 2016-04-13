@@ -12,6 +12,9 @@
 		<link rel="stylesheet" type="text/css" href="style/basic.css">
 
 		<!--  Script.  -->
+		<!--  Socket.io.  -->
+		<script src = 'modules/socketio/Socket.js'></script>
+
 		<!--  Twitter.  -->
 		<script src = 'modules/twitter/User.js'></script>
 		<script src = 'modules/twitter/Trend.js'></script>
@@ -19,9 +22,19 @@
 		<script src = 'modules/twitter/Tweet.js'></script>
 		<script src = 'modules/twitter/Twitter.js'></script>
 
+		<!--  Alchemy.  -->
+		<script src = 'modules/alchemy/Alchemy.js'></script>
+		<script src = 'modules/alchemy/Sentiment.js'></script>
+		<script src = 'modules/alchemy/Keyword.js'></script>
+		<script src = 'modules/alchemy/Entity.js'></script>
+		<script src = 'modules/alchemy/Emotion.js'></script>
+
 		<!--  Clustering.  -->
 		<script src = 'modules/clustering/Clustering1.js'></script>
 		<script src = 'modules/clustering/priority-queue.js'></script>
+
+		<!--  Smaller stuff.  -->
+		<script src = 'modules/other/Local.js'></script>
 
 		<!--  Data.  -->
 		<script src = 'modules/twitter/data/imported_data.js'></script>
@@ -67,6 +80,7 @@
 						<ul id = 'navbar' class="nav nav-pills">
 							<li><a href="#section_tweets">Tweets</a></li>
 							<li><a href="#section_clusters">Clusters</a></li>
+							<li><a href="#section_analysis">Analysis</a></li>
 						</ul>
 
 						<div id="section_tweets" class="container-fluid">
@@ -76,6 +90,10 @@
 						<div id="section_clusters" class="container-fluid">
 							<h1>Clusters</h1>
 							<div id = 'clusters_data'></div>
+						</div>
+						<div id="section_analysis" class="container-fluid">
+							<h1>Analysis</h1>
+							<div id = 'analysis_data'></div>
 						</div>
 
 					</div>
@@ -105,7 +123,7 @@
 			var query = {
 				q: $('#search_bar').val(),
 				result_type: "recent",
-				count: 100,
+				count: 5,  // TODO make it 100.
 			};
 
 			if($('#location_select').val() === "0")
@@ -122,6 +140,9 @@
 			$("#tweets_data").html("Loading ...");
 
 			var callback = function(error, tweets, response) {
+				// Save local data.
+				Local.tweets_from_search = tweets;
+
 				var message = "";
 
 				if(tweets.length !== 0) {
@@ -146,11 +167,46 @@
 		function doClustering() {
 			$("#clusters_data").html("Clustering ... <br> Module not here yet.");
 
+			doAnalysis();
+		};
+
+		function doAnalysis() {
+			$("#analysis_data").html("Analysing ... <br> Module not here yet.");
+
+		};
+
+		function doTestAlchemy() {
+			$("#analysis_data").html("Analysing ... <br> Module not here yet.");
+
+			var callback = function(data, error) {
+				console.log(error);
+				console.log(data);
+			}
+
+			var text = "I'm in love with the Coco. I'll be in the kitchen."
+			Alchemy.emotionTweetsAsText(Local.tweets_from_search, callback);
+
+		}
+
+		function doSentiment() {
+			$("#analysis_data").html("Analysing ... <br> Module not here yet.");
+
+			var callback = function(data, error) {
+				console.log(data);
+
+				var message = "";
+				for(var i = 0; i < data.length; ++i)
+					if(data[i] !== null) {
+					message += Local.tweets_from_search[i].getText() + "<br>" +
+						data[i].type + " with score: " + data[i].score + "<br><br>";
+				}
+				$("#analysis_data").html(message);
+			};
+
+			Alchemy.sentimentTargetedArray(Local.tweets_from_search, "cat", callback);
 		};
 
 
-		var socket = io();
-		var connection_id = 0;
 		/*
         socket.emit('chat message', "Hello world!");
 

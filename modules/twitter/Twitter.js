@@ -60,12 +60,11 @@ Twitter = new function() {
 		}
 
 		// Make a request.
-		connection_id = connection_id + 1;
-		var local = connection_id;
-		socket.emit('search_req', { data: query, connection_id: local });
+		var connection_id = Socket.getNewConnectionId();
+		Socket.emit('search_req', { data: query, connection_id: connection_id });
 
 		// Wait for the response.
-		socket.on('search_res' + local, function(data) {
+		Socket.on('search_res' + connection_id, function(data) {
 			var tweets = new Array();
 			// Convert the data to Tweet objects.
 			for(var i = 0; i < data.data.statuses.length; ++i)
@@ -77,19 +76,19 @@ Twitter = new function() {
 
 
 	// Returns the top 50 trending topics for a specific WOEID, if trending
-	// information is available for it (maximum 50).
+	// information is available for it (maximum 50). The location is the location
+	// name such that woeid[location] is defined (see above).
 	//
-	// getTrends(location: Twitter.woeid, callback: function(error: Unknown, 
+	// getTrends(location: String, callback: function(error: Unknown, 
 	//		tweets: Array[Trend], response: Unknown))
 	this.getTrends = function(location, callback) {
 		// TODO check for supported location.
 		// Make a request.
-		connection_id = connection_id + 1;
-		var local = connection_id;
-		socket.emit('trend_req', { data: woeid[location], connection_id: local });
+		var connection_id = Socket.getNewConnectionId();
+		Socket.emit('trend_req', { data: woeid[location], connection_id: connection_id });
 
 		// Wait for the response.
-		socket.on('trend_res' + local, function(data) {
+		Socket.on('trend_res' + connection_id, function(data) {
 			var trends = new Array();
 			// Convert the data to Trend objects.
 			for(var i = 0; i < data.data[0].trends.length; ++i)

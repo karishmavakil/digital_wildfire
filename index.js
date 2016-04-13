@@ -5,7 +5,10 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var async = require('async');
+// APIs.
 var TwitterAPI = require('twitter');
+var AlchemyAPI = require('alchemy-api');
 
 
 //
@@ -24,36 +27,57 @@ app.use("/modules", express.static(__dirname + '/modules'));
 // Sockets.
 //
 io.on('connection', function(socket) {
+	// Create a listening channel with the client side.
+	var clientConnection = function(channel, call) {
+		socket.on(channel + "_req", function(data) {
+			var input = data.data;
+			var connection_id = data.connection_id;
+
+			var callback = function(output) {
+				io.emit(channel + "_res" + connection_id, output);
+			}
+
+			call(input, callback);
+		});
+	}
+
+
 	//
 	// Twitter.
 	//
 	// Search page request.
-	socket.on('search_req', function(data) {
-		var input = data.data;
-		var connection_id = data.connection_id;
-
-		var callback = function(output) {
-			io.emit('search_res' + connection_id, output);
-		}
-
-		Twitter.searchTweets(input, callback);
-	});
-
+	clientConnection('search', Twitter.searchTweets);
 	// Trends page request.
-	socket.on('trend_req', function(data) {
-		var input = data.data;
-		var connection_id = data.connection_id;
+	clientConnection('trend', Twitter.getTrends);
 
-		var callback = function(output) {
-			io.emit('trend_res' + connection_id, output);
-		}
-
-		Twitter.getTrends(input, callback);
-	});
 
 	//
 	// Alchemy API.
 	//
+	// Sentiment Analysis.
+	clientConnection('alc_sentiment', Alchemy.sentimentText);
+	// Vectorised Sentiment Analysis.
+	clientConnection('alc_sentiment_array', Alchemy.sentimentArray);
+	
+	// Targeted Sentiment Analysis.
+	clientConnection('alc_sentiment_targeted', Alchemy.sentimentTargetedText);
+	// Vectorised Targeted Sentiment Analysis.
+	clientConnection('alc_sentiment_targeted_array', Alchemy.sentimentTargetedArray);
+	
+	// Keywords.
+	clientConnection('alc_keywords', Alchemy.keywordsText);
+	// Vectorise Keywords.
+	clientConnection('alc_keywords_array', Alchemy.keywordsArray);
+
+	// Entities.
+	clientConnection('alc_entities', Alchemy.entitiesText);
+	// Vectorise Entities.
+	clientConnection('alc_entities_array', Alchemy.entitiesArray);
+	
+	// Emotion.
+	clientConnection('alc_emotion', Alchemy.emotionText);
+	// Vectorised Emotion.
+	clientConnection('alc_emotion_array', Alchemy.emotionArray);
 });
 
 
@@ -72,6 +96,7 @@ http.listen(port, function(){
 //
 // Libraries.
 //
+
 // Twitter interface.
 Twitter = new function() {
 	// A client connected to the Twitter API.
@@ -88,8 +113,7 @@ Twitter = new function() {
 			});
 	}
 
-	// searchTweets(query: Object, callback: function({error: Unknown, tweets:
-	//		Array[Tweet], response: Unknown }))
+	// Search Tweets.
 	this.searchTweets = function(query, callback) {
 		connect();
 
@@ -102,8 +126,7 @@ Twitter = new function() {
 		);
 	};
 
-	// getTrends(location: Twitter.woeid, callback: function({error: Unknown, 
-	//		tweets: Array[Trend], response: Unknown}))
+	// Get trending stuff for give location.
 	this.getTrends = function(location, callback) {
 		connect();
 
@@ -116,4 +139,121 @@ Twitter = new function() {
 			}
 		);
 	}
+};
+
+// Alchemy interface.
+Alchemy = new function() {
+	// Our key.
+	var key = "97a5ce54ae469563c4267cd097ad1d3965118c26";
+
+	// Client.
+	var alchemy = new AlchemyAPI(key);
+
+	var classic_text_callback = function(source, callback) {
+		return function(err, response) {
+			if(response.status === "ERROR")
+				callback({ data: {}, error: response.statusInfo });
+			else if(err || !response.hasOwnProperty(source))
+				callback({ data: {}, error: "AlchemyAPI library error." });
+			else
+				callback({ data: response[source], error: err });
+		};
+	};
+
+	var classic_array_callback = function(texts, onCompletion, delegate) {
+		var results = new Array();
+		var errors = new Array();
+	    var count = texts.length;
+
+	    // Add index.
+	    for(var i = 0; i < texts.length; ++i)
+	    	texts[i] = { id: i, text: texts[i] };
+
+	    async.forEach(texts, function(item, callback1) {
+	    	var callback = function(data) {
+	    		count -= 1;
+	    		results[item.id] = data.data;
+	    		errors[item.id] = data.error;
+
+	    		// Check for termination.
+	    		if(count === 0)
+	    			onCompletion({ data: results, error: errors });
+	    	};
+
+	    	delegate(item.text, callback);
+	    });
+	};
+
+	// Get sentiment analysis on given text.
+	this.sentimentText = function(text, callback) {
+		alchemy.sentiment(text, {}, classic_text_callback('docSentiment', callback));
+	};
+
+	// Get sentiment analysis on given array of texts.
+	this.sentimentArray = function(texts, callback) {
+		classic_array_callback(texts, callback, Alchemy.sentimentText);
+	};
+
+	// Get sentiment analysis on given text.
+	this.sentimentTargetedText = function(data, callback) {
+		alchemy.sentiment_targeted(data.text, data.word, {}, classic_text_callback('docSentiment', callback));
+	};
+
+	// Get sentiment analysis on given array of texts.
+	this.sentimentTargetedArray = function(data, onCompletion) {
+		var sentiments = new Array();
+		var errors = new Array();
+		var texts = data.texts;
+		var word = data.word;
+	    var count = texts.length;
+
+	    // Add index.
+	    for(var i = 0; i < texts.length; ++i)
+	    	texts[i] = { id: i, text: texts[i] };
+
+	    async.forEach(texts, function(item, callback) {
+	    	var callback = function(data) {
+	    		count -= 1;
+	    		sentiments[item.id] = data.data;
+	    		errors[item.id] = data.error;
+
+	    		// Check for termination.
+	    		if(count === 0)
+	    			onCompletion({ data: sentiments, error: errors });
+	    	};
+
+	    	Alchemy.sentimentTargetedText({ text: item.text, word: word }, callback);
+	    });
+	};
+
+	// Get the keywords of the given text.
+	this.keywordsText = function(text, callback) {
+		alchemy.keywords(text, {}, classic_text_callback('keywords', callback));
+	}
+
+	// Get keywords on given array of texts.
+	this.keywordsArray = function(texts, callback) {
+		classic_array_callback(texts, callback, Alchemy.keywordsText);
+	};
+
+	// Get the entities of the given text.
+	this.entitiesText = function(text, callback) {
+		alchemy.entities(text, {}, classic_text_callback('entities', callback));
+	};
+
+	// Get entities on given array of texts.
+	this.entitiesArray = function(texts, callback) {
+		classic_array_callback(texts, callback, Alchemy.entitiesText);
+	};
+
+
+	// Get the emotion data of the given text.
+	this.emotionText = function(text, callback) {
+		alchemy._doRequest(alchemy._getQuery(text, {}, "GetEmotion"), classic_text_callback('docEmotions', callback));
+	};
+
+	// Get emotion on given array of texts.
+	this.emotionArray = function(texts, callback) {
+		classic_array_callback(texts, callback, Alchemy.emotionText);
+	};
 };
