@@ -138,6 +138,8 @@
 		function searchString(query) {
 
 			$("#tweets_data").html("Loading ...");
+			$("#clusters_data").html("");
+			$("#analysis_data").html("");
 
 			var callback = function(error, tweets, response) {
 				// Save local data.
@@ -155,7 +157,7 @@
 					message = "No results.";
 				}
 
-				$("#tweets_data").html(message);
+				$("#tweets_data").html("<h3>Tweets found (max 100): " + tweets.length + "</h3>" + message);
 
 				if(tweets.length !== 0)
 					doClustering();
@@ -166,6 +168,8 @@
 
 		function doClustering() {
 			$("#clusters_data").html("Clustering ... <br> Module not here yet.");
+
+			mainClustering(Local.tweets_from_search);
 
 			doAnalysis();
 		};
@@ -205,6 +209,44 @@
 
 			Alchemy.sentimentTargetedArray(Local.tweets_from_search, "cat", callback);
 		};
+
+
+		var showClusters = function(clusters) {
+			var count = 0;
+			var message = "";
+			var br = "<br>";
+
+			if(clusters.length > 0) {
+
+				message += "<h4>Entities used for clustering (with relevance for the tweets): </h4>" + br;
+				message += "<ul class ='list-group'>";
+
+				for(var i = 0; i < clusters[0].words.length; i++)
+					message += "<li class = 'list-group-item'>" + clusters[0].words[i].text + " <b>(" + clusters[0].words[i].relevance +  ")</b></li>";
+
+				message += "</ul>";
+				message += br + br;
+
+				for(var i = 0; i < clusters.length; ++i)
+					if(clusters[i].tweets.length !== 0) {
+						count = count + 1;
+
+						message += "<h4>Cluster #" + count + " has " + clusters[i].tweets.length + " tweets.</h4>";
+						message += "<a href='#demo"+i+"' data-toggle='collapse'>show</a>";
+						message += "<div id ='demo"+i+"' class = 'collapse'>";
+						message += "<ul class ='list-group'>";
+
+						for(var j = 0; j < clusters[i].tweets.length; j++)
+							message += "<li class = 'list-group-item'>" + clusters[i].tweets[j].getText() + "</li>";
+
+						message += "</ul>";
+						message += "</div>";
+					}
+			} else
+				message = "No clusters for data.";
+
+			$("#clusters_data").html("<h3>Clusters: " + count + "</h3>" + message);
+		}
 
 
 		/*

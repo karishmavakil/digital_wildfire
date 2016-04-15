@@ -1,6 +1,23 @@
-Clustering.js cotains the main clustering operations. priorityQueue contains an 
-implementation of priority queues in javascript for use in a part of the 
-clustering. Calling mainClustering(tweets: Array of tweets, sentiments: 
-JSON Object of sentiment of all the text) will return an array of Cluster 
-objects, with each object having a parameter tweets which has the array of 
-tweets in it's cluster.
+Clustering1 documentation
+
+    Clustering1 contains the main clustering operation, called mainClustering, which takes an array of tweet objects.
+    Due to the nature of the callback functions and AlchemyAPI, it can't simply return the result, which will be a, array of cluster objects.
+    At the moment it simply prints it to console (on line 58). 
+    If something else is to be done with it (i.e. another callback) then that would have to be added to the argument of tweetChooser (on line 32, and line 201), then instead of printing to console the callback could be called on result3 to send it somewhere else.
+
+    a cluster object has the following parameters:
+        tweets: array of tweets
+        centroid: array of size 15 which represents the average of all the tweets represented as vectors over the vector space of words
+        words: array of keyWords (from alchemyAPI documentation), each of which has 2 parameters 
+                        text :: string, which is the text
+                        relevance :: string which is the numerical relevance (between 0-1) but in string form. if wanted in float form just call relevance.parseFloat() to get is as a number
+                    
+    every cluster in the result should have the same words array, but will of course have different centroids and tweets. it is possible if there are very few tweets, that a cluster ends up with no tweets. if this would cause a problem just check the size of cluster.tweets, and if 0 splice it out of the array.
+    
+clusterAnalysis documentation:
+
+
+priority-queue documentation:
+
+    an external priority-queue for javascript, see full details and documentation here: https://github.com/adamhooper/js-priority-queue
+    

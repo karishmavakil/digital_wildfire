@@ -44,6 +44,8 @@
 
 	<body>
 
+		<div id = 'response'></div>
+
 		<script>
 
 			var callback = function(error, tweets, response) {
@@ -59,9 +61,10 @@
 				geocode: Twitter.locations.London,
 				lang: Twitter.languages.English,
 				result_type: "recent",
-				count: 10,
+				count: 100,
 			};
 			Twitter.searchTweets(query, callback);
+
 
 
 		</script>
