@@ -123,7 +123,7 @@ Twitter = new function() {
 
 
 	// Returns data given by our supervisers; the which parameter specifies
-	// which data file to import:
+	// which data file to import: (this is query.which)
 	// 0 - "12.50-1.10.csv"
 	// 1 - "13.20-13.40"
 	// 2 - "14.10-14.30"
@@ -131,14 +131,29 @@ Twitter = new function() {
 	// Node. This returns tweets that do not belong to the Tweet class, but to
 	// the LimitedTweet class as they hold less data than a normal tweet.
 	//
-	// getImportedData(which: Int): Array[LimitedTweet]
-	this.getImportedData = function(which) {
-		var tweets = new Array();
+	// searchArchieve(which: Intquery: Object, callback: function(error: Unknown, 
+	//		tweets: Array[Tweet], response: Unknown)): Array[LimitedTweet]
+	this.searchArchive = function(query, callback) {
+		// Make a request.
+		var connection_id = Socket.getNewConnectionId();
+		Socket.emit('archive_req', { data: query, connection_id: connection_id });
 
-		for(var i = 0; i < imported_data_from_super[which].length; ++i)
-			tweets[i] = toLimitedTweet(imported_data_from_super[which][i]);
+		// Wait for the response.
+		Socket.on('archive_res' + connection_id, function(data) {
+			var tweets = new Array();
+			var text = query.q.toLowerCase();  // What to search for.
+			var limit = 1000;  // Stop at this limit
 
-		return tweets;
+			for(var i = 0; i < data.data.length && tweets.length < limit; ++i) {
+				var tweet = toLimitedTweet(data.data[i]);
+				// Filter by language. And Keywords.
+				if(tweet.hasLanguage() && tweet.getLanguage() == "EN" && 
+					tweet.hasText() && tweet.getText().toLowerCase().search(text) !== -1)
+					tweets.push(tweet);
+			}
+
+			callback(data.error, tweets, data.response);
+		});
 	}
 
 

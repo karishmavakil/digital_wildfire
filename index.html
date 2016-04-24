@@ -35,6 +35,7 @@
 
 		<!--  Smaller stuff.  -->
 		<script src = 'modules/other/Local.js'></script>
+		<script src = 'modules/other/Main.js'></script>
 
 		<!--  Data.  -->
 		<script src = 'modules/twitter/data/imported_data.js'></script>
@@ -70,8 +71,19 @@
 
 				<label for = "language_select">Language</label>
 				<select id = 'language_select' class = "form-control">
-					<option value = '0'>English</option>
+					<option value = '0' selected = 'selected'>English</option>
 					<option value = '1'>Any</option>
+				</select>
+
+				<h3>Advanced search</h3>
+
+				<label for = "imported_data_select">Use test data from 23 Feb 2016</label>
+				<select id = 'imported_data_select' class = "form-control">
+					<option value = '0' selected = 'selected'>No</option>
+					<option value = '1'>12.50 - 13.10</option>
+					<option value = '2'>13.20 - 13.40</option>
+					<option value = '3'>14.10 - 14.30</option>
+					<option value = '4'>14.40 - 15.10</option>
 				</select>
 
 				<div class="panel">
@@ -109,6 +121,9 @@
 		</div>
 
 		<script>
+		//
+		// Events.
+		//
 
 		$("#search_button").on("click", function(event) {
 			searchString(grabSearchQuery());
@@ -119,56 +134,11 @@
 				searchString(grabSearchQuery());
 		});
 
-		function grabSearchQuery() {
-			var query = {
-				q: $('#search_bar').val(),
-				result_type: "recent",
-				count: 100,  // TODO make it 100.
-			};
-
-			if($('#location_select').val() === "0")
-				query.geocode = Twitter.locations.London;
-
-			if($('#language_select').val() === "0")
-				query.lang = Twitter.languages.English;
-
-			return query;
-		};
-
-		function searchString(query) {
-
-			$("#tweets_data").html("Loading ...");
-			$("#clusters_data").html("");
-			$("#analysis_data").html("");
-
-			var callback = function(error, tweets, response) {
-				// Save local data.
-				Local.tweets_from_search = tweets;
-
-				var message = "";
-
-				if(tweets.length !== 0) {
-					for(var i = 0; i < tweets.length; ++i) {
-						var tweet = tweets[i];
-						message += "<b>" + tweet.getCreatedAt() + "</b><br>" +
-							tweet.getText() + "<br><br><br>";
-					}
-				} else {
-					message = "No results.";
-				}
-
-				$("#tweets_data").html("<h3>Tweets found (max 100): " + tweets.length + "</h3>" + message);
-
-				if(tweets.length !== 0)
-					doClustering();
-			};
-
-			Twitter.searchTweets(query, callback);
-		};
 
 		function doClustering() {
 			$("#clusters_data").html("Clustering ... <br> Module not here yet.");
 
+			//doTestAlchemy();
 			mainClustering(Local.tweets_from_search);
 
 			doAnalysis();
@@ -183,13 +153,21 @@
 			$("#analysis_data").html("Analysing ... <br> Module not here yet.");
 
 			var callback = function(data, error) {
-				console.log(error);
-				console.log(data);
+
+				var message = "<ul class ='list-group'>";
+
+				for(var i = 0; i < data.length; i++)
+					message += "<li class = 'list-group-item'>" + data[i].text + "<b>("+data[i].relevance+") ("+data[i].count+")</b></li>";
+
+				message += "</ul>";
+
+				// console.log(error);
+				// console.log(data);
+
+				$("#analysis_data").html(message)
 			}
 
-			var text = "I'm in love with the Coco. I'll be in the kitchen."
-			Alchemy.emotionTweetsAsText(Local.tweets_from_search, callback);
-
+			Alchemy.getKeywords(Local.query.q, Local.tweets_from_search, callback);
 		}
 
 		function doSentiment() {
@@ -249,133 +227,7 @@
 		}
 
 
-		/*
-        socket.emit('chat message', "Hello world!");
 
-		socket.on('chat message', function(msg){
-			console.log(msg);
-		});
-		*/
-
-		// Side panel with trending page.
-		function fetchTrending() {
-			// Get trending topics right now in London.
-			var callback = function(error, trends, response) {
-				var message = trends.length + " trends<br>";
-				// Start table.
-				message += "<table class = 'table table-hover'>";
-				message += "<thead><tr><th>Query</th><th>Tweet Volume</th></tr></thead>";
-				message += "<tbody>";
-				for(var i = 0; i < trends.length; ++i) {
-					var trend = trends[i];
-					message += "<tr><td>" + trend.getName() + "</td><td>" +
-						trend.getTweetVolume() + "</td></tr>";
-				}
-				message += "</tbody></table>";
-				$('#trending').html(message);
-			}
-
-			Twitter.getTrends("London", callback);
-		};
-		fetchTrending();
-
-
-		</script>
-
-
-
-
-
-
-		<script>
-
-		// Example search for "cat" and print the text and date of the received
-		// results.
-		/*
-		var callback = function(error, tweets, response) {
-
-			for(var i = 0; i < tweets.length; ++i) {
-
-				var tweet = tweets[i];
-				var message = "<b>" + tweet.getCreatedAt() + "</b><br>" +
-					tweet.getText() + "<br><br><br>";
-
-			   document.getElementById("response").innerHTML += message;
-			}
-		};
-
-		var query = {
-			q: "cat",
-			geocode: Twitter.locations.London,
-			lang: Twitter.languages.English,
-			result_type: "recent",
-			count: 10,
-		};
-		Twitter.searchTweets(query, callback);
-		*/
-		/*
-		// Get trending topics right now in London.
-		var callback = function(error, trends, response) {
-
-			document.getElementById("response").innerHTML += trends.length + 
-				"<br><br>";
-
-			for(var i = 0; i < trends.length; ++i) {
-
-				var trend = trends[i];
-				var message = "<b>" + trend.getName() + "</b> " +
-					trend.getTweetVolume() + " " + trend.isPromotedContent() + 
-					"<br><br><br>";
-
-			   document.getElementById("response").innerHTML += message;
-			}
-		}
-		Twitter.getTrends("London", callback);
-		*/
-
-/*		
-		// Load first 10 Tweets from the imported data from the first time frame.
-		var tweets = Twitter.getImportedData(0);
-		var br = "<br>";
-		var message = "Total improted:" + tweets.length + br + br;
-		for(var i = 0; i < 10; ++i) {
-			var tweet = tweets[i];
-			var coord = tweet.getLocation();
-			message += "Posted by:" + tweet.user.getScreenName() + " which is a " + 
-				tweet.user.getGender() + br + "Created at:" + tweet.getCreatedAt() +
-				" " + coord[0] + " " + coord[1] + "  written in " +
-				tweet.getLanguage() + br + tweet.getText() + br + br + br;
-		}
-
-	  	document.getElementById("response").innerHTML += message;
-	  	*/
-
-	  	/*
-	  	var many = 100;
-	  	var tweetsMany = new Array();
-	  	// Load first 'many' tweets from the imported data, written in English.
-		var tweets = Twitter.getImportedData(0);
-		var br = "<br>";
-
-		var message = "Total improted:" + tweets.length + br + br;
-		var k = 0;
-		for(var i = 0; k < many && i < tweets.length; i++) {
-			var tweet = tweets[i];
-
-			// Check if it's in English.
-			if(tweet.hasLanguage() && tweet.getLanguage() === "EN") {
-				tweetsMany[k] = tweet;
-				var coord = tweet.getLocation();
-				message += "Posted by:" + tweet.user.getScreenName() + " which is a " + 
-					tweet.user.getGender() + br + "Created at:" + tweet.getCreatedAt() +
-					" " + coord[0] + " " + coord[1] + "  written in " +
-					tweet.getLanguage() + br + tweet.getText() + br + br + br;
-				k++;
-				}
-		}
-
-	  	document.getElementById("response").innerHTML += message;
-		*/
 
 		</script>
 

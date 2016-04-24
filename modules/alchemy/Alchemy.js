@@ -212,6 +212,53 @@ Alchemy = new function() {
 	};
 
 
+	// This optimised for clustering.
+	// getKeywords(query: String, tweets: Array[Tweet], function(data: Array[Keyword], error: Unknown))
+	this.getKeywords = function(query, tweets, callback) {
+ 		var keywords = new Array()
+ 		var errors = new Array()
+
+ 		// First split the query.
+ 		/*
+ 		var query_key = query.split(" ");
+ 		for(var i = 0; i < query_key.length; i++)
+ 			keywords.push({ text: query_key[i] , relevance: 1.0 })
+*/
+ 		// Get keywords.
+ 		var callback_keywords = function(keys, error) {
+ 			errors.push(error);
+
+ 			// Filter.
+ 			for(var i = 0; i < keys.length; i++)
+ 				if(keys[i].text.length <= 30 && keys[i].relevance > 0.7 && keys[i].text.length > 2)
+ 					keywords.push(keys[i])
+
+ 			// Return the data.
+ 			callback(keywords, errors);
+ 		}
+
+ 		// Get entities.
+ 		var callback_entities = function(entities, error) {
+ 			errors.push(error);
+
+ 			// Filter for count > 1.
+ 			for(var i = 0; i < entities.length; i++)
+ 				if(entities[i].type === "TwitterHandle" || entities[i].type === "Hashtag") {
+ 					if(entities[i].count > 2)
+ 						keywords.push(entities[i])
+ 				} else {
+ 					if(entities[i].count > 1 && entities[i].relevance > 0.1)
+ 						keywords.push(entities[i])
+ 				}
+
+ 			// Call for keywords
+ 			Alchemy.keywordsTweetsAsText(tweets, callback_keywords);
+ 		}
+
+ 		Alchemy.entitiesTweetsAsText(tweets, callback_entities);
+	}
+
+
 
 
 	// 
@@ -262,7 +309,7 @@ Alchemy = new function() {
 		var text = "";
 		for(var i = 0; i < tweets.length; ++i)
 			if(tweets[i].hasText())
-				text += " " + tweets[i].getText();
+				text += ". " + tweets[i].getText();
 
 		if(text === "")
 			callback({}, "Error: No text provided.");

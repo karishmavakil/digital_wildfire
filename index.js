@@ -6,6 +6,7 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var async = require('async');
+var fs = require('fs');
 // APIs.
 var TwitterAPI = require('twitter');
 var AlchemyAPI = require('alchemy-api');
@@ -51,6 +52,8 @@ io.on('connection', function(socket) {
 	clientConnection('search', Twitter.searchTweets);
 	// Trends page request.
 	clientConnection('trend', Twitter.getTrends);
+	// Archive request.
+	clientConnection('archive', Twitter.searchArchive);
 
 
 	//
@@ -141,12 +144,21 @@ Twitter = new function() {
 			}
 		);
 	}
+
+	// Search the archieve.
+	this.searchArchive = function(data, callback) {
+		results = JSON.parse(fs.readFileSync('./data/imported_data_' + data.which, 'utf8'));
+		callback({ error: "", data: results, response: "ok" });
+	}
 };
 
 // Alchemy interface.
 Alchemy = new function() {
 	// Our key.
 	var key = "97a5ce54ae469563c4267cd097ad1d3965118c26";
+
+	// Constants.
+	var return_limit = 1000;  // i.e. return maximum no entities.
 
 	// Client.
 	var alchemy = new AlchemyAPI(key);
@@ -230,7 +242,7 @@ Alchemy = new function() {
 
 	// Get the keywords of the given text.
 	this.keywordsText = function(text, callback) {
-		alchemy.keywords(text, {}, classic_text_callback('keywords', callback));
+		alchemy.keywords(text, { maxRetrieve: return_limit }, classic_text_callback('keywords', callback));
 	}
 
 	// Get keywords on given array of texts.
@@ -240,7 +252,7 @@ Alchemy = new function() {
 
 	// Get the entities of the given text.
 	this.entitiesText = function(text, callback) {
-		alchemy.entities(text, {}, classic_text_callback('entities', callback));
+		alchemy.entities(text, { maxRetrieve: return_limit }, classic_text_callback('entities', callback));
 	};
 
 	// Get entities on given array of texts.

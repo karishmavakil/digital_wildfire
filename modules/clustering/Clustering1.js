@@ -3,7 +3,7 @@
 // vectorise take a tweet and vectorises it over the words chosen by the tweetChooser, including the sentiment in the scaling
 function vectorise(tweet, words) {
     var v = [], k = 0;
-    var tweetText = tweet.text.toLowerCase();
+    var tweetText = tweet.getText().toLowerCase();
     for (k = 0; k < words.length; k++) {
         v[k] = 0;
         if (tweetText.indexOf(words[k].text.toLowerCase()) > - 1) {
@@ -12,9 +12,10 @@ function vectorise(tweet, words) {
 //               console.log("callbackworking?");
 //            }
 //            Alchemy.sentimentTargetedTweet(tweet, words[k], callback1);
-            v[k] = parseFloat(words[k].relevance);
+            v[k] = parseFloat(Math.max(words[k].relevance, 0.5));
         }
     }
+    // console.log(v);
     return v;
 }
 
@@ -23,7 +24,7 @@ function vectorise(tweet, words) {
 function similarity(tweet1Vector, tweet2Vector) {
     var total = 0.0, i = 0;
     for (i = 0; i < tweet1Vector.length; i++) {
-        total += tweet1Vector[i] * tweet2Vector[i];
+        total += Math.sqrt(tweet1Vector[i] * tweet2Vector[i]);
     }
     return total;
 }
@@ -37,7 +38,7 @@ function tweetChooser(tweets, tweetNum, clusterNum) {
     
     function callback2(keywords, error) {
         chosenWords = keywords;
-        chosenWords.length = 15;
+        // chosenWords.length = 15;
         
         for (i = 0; i < tweets.length; i++) {
             tweet = tweets[i];
@@ -62,13 +63,26 @@ function tweetChooser(tweets, tweetNum, clusterNum) {
         this.tweets = array1;
         this.words = array2;
     }
-    Alchemy.keywordsTweetsAsText(tweets, callback2);
+    Alchemy.getKeywords(Local.query.q, tweets, callback2);
 }
 
-// hardClustering takes tweets chosen over a vector space of words provided (both parameters of the object returned by tweetChooser), but as it's O(log(n)n^2) time we only do it on a small covering sample of all the tweets, and then use the clusters generated as the base clusters for the rest of the tweets to be attached to. returns an array of clusterNum cluster objects, with 2 parameters: tweets, an array of tweets; and centroid, the calculated centre of each cluster over the vector space of chosen words.
+// hardClustering takes tweets chosen over a vector space of words provided 
+// (both parameters of the object returned by tweetChooser), but as it's 
+// O(log(n)n^2) time we only do it on a small covering sample of all the tweets,
+// and then use the clusters generated as the base clusters for the rest of 
+// the tweets to be attached to. returns an array of clusterNum cluster objects,
+// with 2 parameters: tweets, an array of tweets; and centroid, the calculated 
+// centre of each cluster over the vector space of chosen words.
 // :: object of array of tweets, array of words; json object of sentiments, number => array of objects of array of tweets, array of words
 function hardClustering(chosen, clusterNum) {
-    var words = chosen.words, compareNumbers = function (a, b) { return (b.value - a.value); }, maxOrder = new PriorityQueue({ comparator : compareNumbers }), i = 0, j = 0;
+    var words = chosen.words;
+    console.log("Using " + words.length + " keywords for clustering.");
+    console.log("Hard-clustering " + chosen.tweets.length + " tweets.");
+    compareNumbers = function (a, b) { return (b.value - a.value); };
+    maxOrder = new PriorityQueue({ comparator : compareNumbers });
+    i = 0;
+    j = 0;
+
     // compareNumbers :: diffValue, diffValue => Number
     // diffvalue :: number, number, number => diffValue
     function DiffValue(diff, xco, yco) {
@@ -76,21 +90,32 @@ function hardClustering(chosen, clusterNum) {
         this.x = xco;
         this.y = yco;
     }
+
     // vectorises all the tweets
     for (i = 0; i < chosen.tweets.length; i++) {
         chosen.tweets[i].vector = vectorise(chosen.tweets[i], words);
     }
     
-    // inserts each possible difference between 2 points into the priority queeue as an object with coordinates and and value of the difference
+    // inserts each possible difference between 2 points into the priority 
+    // queeue as an object with coordinates and and value of the difference.
     for (i = 0; i < chosen.tweets.length; i++) {
         for (j = 0; j < chosen.tweets.length; j++) {
             maxOrder.queue(new DiffValue(similarity(chosen.tweets[i].vector, chosen.tweets[j].vector), i, j));
-        }
-        
+        } 
     }
     
-    // clusters is the array of arrays of tweet ids which will be the finished prooduct; clustersLocation is an array saying which cluster each tweet is in (initially -1); clusterCount is the amount of clusters (abstractally imagining every tweet initially as a cluster); clusterPace is a stack of locations where new clusters can be put in the clusters array.
-    var clusters = [[]], clusterLocations = new Array(chosen.tweets.length), clusterCount = chosen.tweets.length, clusterPlace = new Array(chosen.tweets.length), v = maxOrder.dequeue, place = 0;
+    // clusters is the array of arrays of tweet ids which will be the finished
+    // prooduct; clustersLocation is an array saying which cluster each tweet is
+    // in (initially -1); clusterCount is the amount of clusters (abstractally 
+    // imagining every tweet initially as a cluster); clusterPace is a stack of 
+    // locations where new clusters can be put in the clusters array.
+    var clusters = [[]];
+    clusterLocations = new Array(chosen.tweets.length);
+    clusterCount = chosen.tweets.length;
+    clusterPlace = new Array(chosen.tweets.length);
+    v = maxOrder.dequeue()
+    place = 0;
+
     for (i = 0; i < chosen.tweets.length; i++) {
         clusterLocations[i] = -1;
         clusterPlace.push((chosen.tweets.length - 1) - i);
@@ -98,7 +123,8 @@ function hardClustering(chosen, clusterNum) {
     
     // the main clustering operation is performed here
     var rounds = 0;
-    while (clusterCount > clusterNum && rounds < 100) {
+    while (clusterCount > clusterNum && v.value > 2) {
+        console.log(v);
         rounds = rounds + 1;
         if (v.x === v.y) { // if it's a difference bwteen the same element ignore it
         } else if ((clusterLocations[v.x] === -1) && (clusterLocations[v.y] === -1)) {// if neither tweet is in a cluster then make a new cluster with just those 2 tweets in
@@ -136,7 +162,7 @@ function hardClustering(chosen, clusterNum) {
                 clusters[clusterLocations[v.y]] = []; // clears the array so we know there's no cluster there
             }
         }
-        v = maxOrder.dequeue;
+        v = maxOrder.dequeue();
     }
 
     
@@ -198,9 +224,9 @@ function easyClustering(tweetClusters, tweets) {
 }
 
 function mainClustering(tweets) {
-    // returns a good proportion of tweets to take for hard clustreing: approx 200 of 100, or 600 of 10000.
+    // returns a good proportion of tweets to take for hard clustreing: approx 200 of 1000, or 600 of 10000.
     // var N = 6 * Math.ceil(Math.sqrt(tweets.length)), k = 15;
-    var N = Math.ceil(tweets.length - 2);
+    var N = tweets.length; // 6 * Math.ceil(Math.sqrt(tweets.length));
     k = 15;
     tweetChooser(tweets, N, k);
 }
