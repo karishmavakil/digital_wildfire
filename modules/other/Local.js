@@ -8,4 +8,7 @@ Local = new function() {
 
 	// Tweets returned from the search.
 	tweets_from_search = null;
+
+	// Cluster data.
+	clusters = null;
 }

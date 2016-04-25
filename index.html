@@ -33,6 +33,9 @@
 		<script src = 'modules/clustering/Clustering1.js'></script>
 		<script src = 'modules/clustering/priority-queue.js'></script>
 
+		<!--  Analysis.  -->
+		<script src = 'modules/clustering/clusterAnalysis.js'></script>
+
 		<!--  Smaller stuff.  -->
 		<script src = 'modules/other/Local.js'></script>
 		<script src = 'modules/other/Main.js'></script>
@@ -140,13 +143,13 @@
 
 			//doTestAlchemy();
 			mainClustering(Local.tweets_from_search);
-
-			doAnalysis();
 		};
 
 		function doAnalysis() {
 			$("#analysis_data").html("Analysing ... <br> Module not here yet.");
 
+			Local.analyzed_data = mainfn(Local.clusters, Local.clusters.words);
+			console.log(Local.analyzed_data);
 		};
 
 		function doTestAlchemy() {

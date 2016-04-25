@@ -55,9 +55,24 @@ function tweetChooser(tweets, tweetNum, clusterNum) {
         var result2 = hardClustering(result, clusterNum);
         
         var result3 = easyClustering(result2, tweets);
+
+        // Filter out empty clusters.
+        var filterClusters = function(clusters) {
+            var filtered_clusters = new Array();
+
+            for(var i = 0; i < clusters.length; ++i)
+                if(clusters[i].tweets.length !== 0)
+                    filtered_clusters.push(clusters[i]);
+
+            return filtered_clusters;
+        };
         
-        console.log(result3);
-        showClusters(result3);
+        Local.clusters = filterClusters(result3);
+        console.log(Local.clusters);
+        showClusters(Local.clusters);
+
+        // Do the analysis.
+        doAnalysis();
     }
     function Chosen(array1, array2) {
         this.tweets = array1;
@@ -123,8 +138,8 @@ function hardClustering(chosen, clusterNum) {
     
     // the main clustering operation is performed here
     var rounds = 0;
-    while (clusterCount > clusterNum && v.value > 2) {
-        console.log(v);
+    while (clusterCount > clusterNum && rounds < 20) {
+
         rounds = rounds + 1;
         if (v.x === v.y) { // if it's a difference bwteen the same element ignore it
         } else if ((clusterLocations[v.x] === -1) && (clusterLocations[v.y] === -1)) {// if neither tweet is in a cluster then make a new cluster with just those 2 tweets in
@@ -161,6 +176,7 @@ function hardClustering(chosen, clusterNum) {
                 clusterPlace.push(clusterLocations[v.y]);
                 clusters[clusterLocations[v.y]] = []; // clears the array so we know there's no cluster there
             }
+            clusterCount -= 1;
         }
         v = maxOrder.dequeue();
     }
@@ -226,7 +242,7 @@ function easyClustering(tweetClusters, tweets) {
 function mainClustering(tweets) {
     // returns a good proportion of tweets to take for hard clustreing: approx 200 of 1000, or 600 of 10000.
     // var N = 6 * Math.ceil(Math.sqrt(tweets.length)), k = 15;
-    var N = tweets.length; // 6 * Math.ceil(Math.sqrt(tweets.length));
-    k = 15;
+    var N = 6 * Math.ceil(Math.sqrt(tweets.length));
+    k = 10;
     tweetChooser(tweets, N, k);
 }
