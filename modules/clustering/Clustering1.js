@@ -12,7 +12,7 @@ function vectorise(tweet, words) {
 //               console.log("callbackworking?");
 //            }
 //            Alchemy.sentimentTargetedTweet(tweet, words[k], callback1);
-            v[k] = parseFloat(Math.max(words[k].relevance, 0.5));
+            v[k] = parseFloat(Math.max(words[k].relevance, 0.4));
         }
     }
     // console.log(v);
@@ -57,10 +57,10 @@ function tweetChooser(tweets, tweetNum, clusterNum) {
         var result3 = easyClustering(result2, tweets);
 
         // Filter out empty clusters.
-        var filterClusters = function(clusters) {
-            var filtered_clusters = new Array();
+        var filterClusters = function (clusters) {
+            var filtered_clusters = [];
 
-            for(var i = 0; i < clusters.length; ++i)
+            for (var i = 0; i < clusters.length; ++i)
                 if(clusters[i].tweets.length !== 0)
                     filtered_clusters.push(clusters[i]);
 
@@ -78,7 +78,7 @@ function tweetChooser(tweets, tweetNum, clusterNum) {
         this.tweets = array1;
         this.words = array2;
     }
-    Alchemy.getKeywords(Local.query.q, tweets, callback2);
+    Alchemy.getKeywords("", tweets, callback2);
 }
 
 // hardClustering takes tweets chosen over a vector space of words provided 
@@ -93,6 +93,7 @@ function hardClustering(chosen, clusterNum) {
     var words = chosen.words;
     console.log("Using " + words.length + " keywords for clustering.");
     console.log("Hard-clustering " + chosen.tweets.length + " tweets.");
+    console.log("aiming for: " + clusterNum + " clusters");
     compareNumbers = function (a, b) { return (b.value - a.value); };
     maxOrder = new PriorityQueue({ comparator : compareNumbers });
     i = 0;
@@ -105,7 +106,7 @@ function hardClustering(chosen, clusterNum) {
         this.x = xco;
         this.y = yco;
     }
-
+    console.log("check1");
     // vectorises all the tweets
     for (i = 0; i < chosen.tweets.length; i++) {
         chosen.tweets[i].vector = vectorise(chosen.tweets[i], words);
@@ -135,31 +136,31 @@ function hardClustering(chosen, clusterNum) {
         clusterLocations[i] = -1;
         clusterPlace.push((chosen.tweets.length - 1) - i);
     } // initialising the arrays
-    
+
+    console.log("check2");
     // the main clustering operation is performed here
     var rounds = 0;
-    while (clusterCount > clusterNum && rounds < 20) {
-
+    while (clusterCount > clusterNum) {
         rounds = rounds + 1;
-        if (v.x === v.y) { // if it's a difference bwteen the same element ignore it
-        } else if ((clusterLocations[v.x] === -1) && (clusterLocations[v.y] === -1)) {// if neither tweet is in a cluster then make a new cluster with just those 2 tweets in
+        if (v.x === v.y) { // console.log("check2.1"); // if it's a difference bwteen the same element ignore it
+        } else if ((clusterLocations[v.x] === -1) && (clusterLocations[v.y] === -1)) { // console.log("check2.2"); // if neither tweet is in a cluster then make a new cluster with just those 2 tweets in
             place = clusterPlace.pop();
             clusterLocations[v.x] = place;
             clusterLocations[v.y] = place;
             clusters[place] = [v.x, v.y];
             clusterCount -= 1;
-        } else if (clusterLocations[v.x] === -1) { // if one of the tweets is in a cluster add the other to it
+        } else if (clusterLocations[v.x] === -1) { // console.log("check2.3"); // if one of the tweets is in a cluster add the other to it
             clusterLocations[v.x] = clusterLocations[v.y];
             clusters[clusterLocations[v.y]].push(v.x);
             clusterCount -= 1;
-        } else if (clusterLocations[v.y] === -1) { // as above
+        } else if (clusterLocations[v.y] === -1) { // console.log("check2.4");// as above
             clusterLocations[v.y] = clusterLocations[v.x];
             clusters[clusterLocations[v.x]].push(v.y);
             clusterCount -= 1;
-        } else if (clusterLocations[v.y] === clusterLocations[v.x]) { // if the 2 points are already in the same cluster (might never happen) do nothing
-        } else { // find the cluster with the small size (for efficiency) then add that cluster to the other one
+        } else if (clusterLocations[v.y] === clusterLocations[v.x]) { // console.log("check2.5"); // if the 2 points are already in the same cluster (might never happen) do nothing
+        } else { // console.log("check2.6");// find the cluster with the small size (for efficiency) then add that cluster to the other one
             var tweetId = 0;
-            if (clusters[clusterLocations[v.y]].length > clusters[clusterLocations[v.x]].length) {
+            if (clusters[clusterLocations[v.y]].length > clusters[clusterLocations[v.x]].length) { // console.log("check2.7");
                 for (i = 0; i < clusters[clusterLocations[v.x]].length; i++) {
                     tweetId = clusters[clusterLocations[v.x]][i];
                     clusters[clusterLocations[v.y]].push(tweetId);
@@ -167,7 +168,7 @@ function hardClustering(chosen, clusterNum) {
                 }
                 clusterPlace.push(clusterLocations[v.x]);
                 clusters[clusterLocations[v.x]] = []; // clears the array so we know there's no cluster there
-            } else {
+            } else { // console.log("check2.8");
                 for (i = 0; i < clusters[clusterLocations[v.y]].length; i++) {
                     tweetId = clusters[clusterLocations[v.y]][i];
                     clusters[clusterLocations[v.x]].push(tweetId);
@@ -179,9 +180,10 @@ function hardClustering(chosen, clusterNum) {
             clusterCount -= 1;
         }
         v = maxOrder.dequeue();
+        console.log(clusterCount);
     }
 
-    
+    console.log("check3");
     if(clusters.length < clusterNum) {
         for(i = 0; i < chosen.tweets.length; i++){
             if(clusterLocations[i] === -1) {
@@ -242,7 +244,7 @@ function easyClustering(tweetClusters, tweets) {
 function mainClustering(tweets) {
     // returns a good proportion of tweets to take for hard clustreing: approx 200 of 1000, or 600 of 10000.
     // var N = 6 * Math.ceil(Math.sqrt(tweets.length)), k = 15;
-    var N = 6 * Math.ceil(Math.sqrt(tweets.length));
-    k = 10;
+    var N = 4 * Math.ceil(Math.sqrt(tweets.length));
+    k = 15;
     tweetChooser(tweets, N, k);
 }
