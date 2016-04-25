@@ -148,7 +148,7 @@
 		function doAnalysis() {
 			$("#analysis_data").html("Analysing ... <br> Module not here yet.");
 
-			Local.analyzed_data = mainfn(Local.clusters, Local.clusters.words);
+			Local.analyzed_data = clusterAnalysis(Local.clusters);
 			console.log(Local.analyzed_data);
 		};
 
